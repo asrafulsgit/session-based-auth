@@ -1,33 +1,53 @@
+// backend/server.js
 const express = require("express");
 const session = require("express-session");
+const cors = require("cors");
 
 const app = express();
 
-app.use(express.urlencoded({extended: true}))
+// Middlewares
+app.use(express.urlencoded({extended:true}))
+app.use(express.json());
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 app.use(
   session({
-    secret: "secret_key", 
+    secret: "your_secret_key",
     resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 60000*5 }, 
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 300000, // 5 minutes
+      httpOnly: true,
+      secure: false, // Set to true for HTTPS
+      sameSite: "strict",
+    },
   })
 );
 
-const users = [{username:'karim',password : 'karim123'}]
+const users = [{ username: "karim", password: "karim123" }];
 
+// Login Route
 app.post("/login", (req, res) => {
-  const {username,password}= req.body;
-  console.log(username,password)
-  const user = users.find((u)=> u.username === username && u.password === password)
-  if(!user) return res.status(404).send({message : 'username of password is wrong!'})
-  req.session.user = user; 
-  res.status(200).send({
-     message : 'login successfull',
-     user
-  });
+  const { username, password } = req.body;
+  const user = users.find((u) => u.username === username && u.password === password);
+  if (!user) return res.status(404).send({ message: "username or password is wrong!" });
+
+  req.session.user = user; // Save user to session
+  console.log(req.session)
+  res.status(200).send({ message: "Login successful", user });
 });
 
+// Verify Auth Route
+app.get("/verify-auth", (req, res) => {
+  console.log(req.session)
+  if (req.session.user) {
+    res.status(200).json({ credentials: true });
+  } else {
+    res.status(401).json({ credentials: false });
+  }
+});
+
+// Dashboard Route
 app.get("/dashboard", (req, res) => {
   if (req.session.user) {
     res.send(`Welcome, ${req.session.user.username}`);
@@ -36,6 +56,7 @@ app.get("/dashboard", (req, res) => {
   }
 });
 
+// Logout Route
 app.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).send("Logout failed!");
@@ -43,7 +64,6 @@ app.post("/logout", (req, res) => {
   });
 });
 
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
+app.listen(8000, () => {
+  console.log("Server running on http://localhost:8000");
 });
-
