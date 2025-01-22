@@ -1,7 +1,7 @@
 // frontend/src/Login.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { replace, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [user, setUser] = useState({ username: '', password: '' });
@@ -13,7 +13,8 @@ const Login = () => {
       .post('http://localhost:8000/login', user, { withCredentials: true })
       .then((res) => {
         console.log(res.data);
-        navigate('/');
+        // window.location.reload();
+        navigate('/')
       })
       .catch((err) => {
         console.log(err);

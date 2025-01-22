@@ -2,7 +2,7 @@
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
-
+// const cookie =require('cookie-parser')
 const app = express();
 
 // Middlewares
@@ -16,9 +16,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 300000, // 5 minutes
+      maxAge: 5000, 
       httpOnly: true,
-      secure: false, // Set to true for HTTPS
+      secure: false, 
       sameSite: "strict",
     },
   })
@@ -32,15 +32,18 @@ app.post("/login", (req, res) => {
   const user = users.find((u) => u.username === username && u.password === password);
   if (!user) return res.status(404).send({ message: "username or password is wrong!" });
 
-  req.session.user = user; // Save user to session
-  console.log(req.session)
+  req.session.user = user; 
+  // console.log(req.session)
   res.status(200).send({ message: "Login successful", user });
 });
 
+
+
 // Verify Auth Route
 app.get("/verify-auth", (req, res) => {
-  console.log(req.session)
-  if (req.session.user) {
+  // console.log(req.headers.cookie)
+  console.log(req.session.user)
+  if (req.headers.cookie) {
     res.status(200).json({ credentials: true });
   } else {
     res.status(401).json({ credentials: false });
